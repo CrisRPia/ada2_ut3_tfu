@@ -1,0 +1,68 @@
+services:
+  proxy:
+    image: nginx:latest
+    container_name: music-player-proxy
+    ports:
+      - "8080:80"
+    volumes:
+      - ./proxy/nginx.conf:/etc/nginx/nginx.conf:ro
+    depends_on:
+      - auth-service
+      - songs-service
+      - playlists-service
+
+  auth-service:
+    container_name: auth-service
+    build:
+      context: ./services/auth
+    depends_on:
+      - db
+    environment:
+      - DB_HOST=db
+      - DB_PORT=5432
+      - DB_NAME=music_player_db
+      - DB_USER=user
+      - DB_PASSWORD=password
+
+  songs-service:
+    container_name: songs-service
+    build:
+      context: ./services/songs
+    depends_on:
+      - db
+    environment:
+      - DB_HOST=db
+      - DB_PORT=5432
+      - DB_NAME=music_player_db
+      - DB_USER=user
+      - DB_PASSWORD=password
+
+  playlists-service:
+    container_name: playlists-service
+    build:
+      context: ./services/playlists
+    depends_on:
+      - db
+    environment:
+      - DB_HOST=db
+      - DB_PORT=5432
+      - DB_NAME=music_player_db
+      - DB_USER=user
+      - DB_PASSWORD=password
+
+  db:
+    image: postgres:16
+    container_name: music-player-db
+    restart: always
+    environment:
+      - POSTGRES_USER=user
+      - POSTGRES_PASSWORD=password
+      - POSTGRES_DB=music_player_db
+    ports:
+      # Exposing the DB port is useful for development tools.
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+volumes:
+  postgres_data:
