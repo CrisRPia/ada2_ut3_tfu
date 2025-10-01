@@ -1,10 +1,10 @@
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
-using bitwardenclone.src.models;
+using service.src.models;
 using Microsoft.IdentityModel.Tokens;
 
-namespace bitwardenclone.src.services;
+namespace service.src.services;
 
 public class JwtTokenGenerator(IConfiguration configuration)
 {
@@ -66,7 +66,7 @@ public class JwtTokenGenerator(IConfiguration configuration)
             {
                 Id = Guid.Parse(userId),
                 Email = email,
-                MasterPasswordHash = ""
+                PasswordHash = ""
             };
         }
         catch (SecurityTokenException)

@@ -1,14 +1,13 @@
 using System.ComponentModel.DataAnnotations;
-using bitwardenclone.src.models;
-using bitwardenclone.src.services;
+using service.src.models;
+using service.src.services;
 using Isopoh.Cryptography.Argon2;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
-namespace bitwardenclone.src.controllers;
+namespace service.src.controllers;
 
 [ApiController]
-[Route("auth")]
 [Produces("application/json")]
 public class AuthController(ApplicationDbContext context, JwtTokenGenerator tokenGenerator)
     : Controller
@@ -30,7 +29,7 @@ public class AuthController(ApplicationDbContext context, JwtTokenGenerator toke
         {
             Id = Guid.NewGuid(),
             Email = request.Email,
-            MasterPasswordHash = Argon2.Hash(request.MasterPassword),
+            PasswordHash = Argon2.Hash(request.MasterPassword),
         };
 
         context.Users.Add(user);
@@ -50,7 +49,7 @@ public class AuthController(ApplicationDbContext context, JwtTokenGenerator toke
     {
         var user = await context.Users.FirstOrDefaultAsync(u => u.Email == request.Email);
 
-        if (user == null || !Argon2.Verify(user.MasterPasswordHash, request.MasterPassword))
+        if (user == null || !Argon2.Verify(user.PasswordHash, request.MasterPassword))
         {
             return Unauthorized("Invalid credentials.");
         }

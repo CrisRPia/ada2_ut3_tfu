@@ -1,12 +1,9 @@
 using System.Text;
 using System.Text.Json.Serialization;
-using System.Threading.RateLimiting;
 using AspNetCore.Swagger.Themes;
-using bitwardenclone.src.controllers;
-using bitwardenclone.src.models;
-using bitwardenclone.src.services;
+using service.src.models;
+using service.src.services;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
-using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
@@ -26,8 +23,6 @@ builder.Services.AddDbContext<ApplicationDbContext>(options =>
 );
 
 builder.Services.AddSingleton<JwtTokenGenerator>();
-builder.Services.AddSingleton<CryptoService>();
-builder.Services.AddScoped<ServerController>();
 
 builder.Services.AddAuthorization();
 builder
@@ -47,40 +42,6 @@ builder
             ),
         };
     });
-
-// Rate limiting
-builder.Services.AddRateLimiter(options =>
-{
-    options.GlobalLimiter = PartitionedRateLimiter.Create<HttpContext, string>(httpContext =>
-        RateLimitPartition.GetFixedWindowLimiter(
-            partitionKey: httpContext.User.Identity?.Name
-                ?? httpContext.Request.Headers.Host.ToString(),
-            factory: partition => new FixedWindowRateLimiterOptions
-            {
-                AutoReplenishment = true,
-                PermitLimit = 4,
-                QueueLimit = 2,
-                Window = TimeSpan.FromSeconds(12),
-            }
-        )
-    );
-
-    options.OnRejected = (context, cancellationToken) =>
-    {
-        if (context.Lease.TryGetMetadata(MetadataName.RetryAfter, out var retryAfter))
-        {
-            context.HttpContext.Response.Headers.RetryAfter = retryAfter.TotalSeconds.ToString();
-        }
-
-        context.HttpContext.Response.StatusCode = StatusCodes.Status429TooManyRequests;
-        context.HttpContext.Response.WriteAsync(
-            "Too many requests. Please try again later.",
-            CancellationToken.None
-        );
-
-        return new ValueTask();
-    };
-});
 
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(options =>
@@ -116,8 +77,10 @@ builder.Services.AddSwaggerGen(options =>
 });
 
 var app = builder.Build();
-
 // --- Middleware & Database Migration ---
+
+app.UsePathBase("/api/auth");
+app.UseRouting();
 
 using (var scope = app.Services.CreateScope())
 {
@@ -131,7 +94,6 @@ if (app.Environment.IsDevelopment())
     app.UseSwaggerUI(ModernStyle.Dark);
 }
 
-app.UseRateLimiter();
 app.UseHttpsRedirection();
 app.UseAuthentication();
 app.UseAuthorization();

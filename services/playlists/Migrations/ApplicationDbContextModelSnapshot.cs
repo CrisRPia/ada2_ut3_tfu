@@ -4,11 +4,11 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
-using bitwardenclone.src.models;
+using service.src.models;
 
 #nullable disable
 
-namespace bitwardenclone.Migrations
+namespace service.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
     partial class ApplicationDbContextModelSnapshot : ModelSnapshot
@@ -22,7 +22,64 @@ namespace bitwardenclone.Migrations
 
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
 
-            modelBuilder.Entity("bitwardenclone.src.models.User", b =>
+            modelBuilder.Entity("service.src.models.Playlist", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<Guid>("UserId")
+                        .HasColumnType("uuid");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("UserId");
+
+                    b.ToTable("Playlists");
+                });
+
+            modelBuilder.Entity("service.src.models.PlaylistSong", b =>
+                {
+                    b.Property<Guid>("PlaylistId")
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid>("SongId")
+                        .HasColumnType("uuid");
+
+                    b.HasKey("PlaylistId", "SongId");
+
+                    b.HasIndex("SongId");
+
+                    b.ToTable("PlaylistSongs");
+                });
+
+            modelBuilder.Entity("service.src.models.Song", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("Artist")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<int>("PlayCount")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("Title")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("Songs");
+                });
+
+            modelBuilder.Entity("service.src.models.User", b =>
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
@@ -32,7 +89,7 @@ namespace bitwardenclone.Migrations
                         .IsRequired()
                         .HasColumnType("text");
 
-                    b.Property<string>("MasterPasswordHash")
+                    b.Property<string>("PasswordHash")
                         .IsRequired()
                         .HasColumnType("text");
 
@@ -44,41 +101,49 @@ namespace bitwardenclone.Migrations
                     b.ToTable("Users");
                 });
 
-            modelBuilder.Entity("bitwardenclone.src.models.Vault", b =>
+            modelBuilder.Entity("service.src.models.Playlist", b =>
                 {
-                    b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("uuid");
-
-                    b.Property<string>("EncryptedData")
-                        .IsRequired()
-                        .HasColumnType("text");
-
-                    b.Property<Guid>("UserId")
-                        .HasColumnType("uuid");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("UserId")
-                        .IsUnique();
-
-                    b.ToTable("Vaults");
-                });
-
-            modelBuilder.Entity("bitwardenclone.src.models.Vault", b =>
-                {
-                    b.HasOne("bitwardenclone.src.models.User", "User")
-                        .WithOne("Vault")
-                        .HasForeignKey("bitwardenclone.src.models.Vault", "UserId")
+                    b.HasOne("service.src.models.User", "User")
+                        .WithMany("Playlists")
+                        .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
                     b.Navigation("User");
                 });
 
-            modelBuilder.Entity("bitwardenclone.src.models.User", b =>
+            modelBuilder.Entity("service.src.models.PlaylistSong", b =>
                 {
-                    b.Navigation("Vault");
+                    b.HasOne("service.src.models.Playlist", "Playlist")
+                        .WithMany("PlaylistSongs")
+                        .HasForeignKey("PlaylistId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("service.src.models.Song", "Song")
+                        .WithMany("PlaylistSongs")
+                        .HasForeignKey("SongId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Playlist");
+
+                    b.Navigation("Song");
+                });
+
+            modelBuilder.Entity("service.src.models.Playlist", b =>
+                {
+                    b.Navigation("PlaylistSongs");
+                });
+
+            modelBuilder.Entity("service.src.models.Song", b =>
+                {
+                    b.Navigation("PlaylistSongs");
+                });
+
+            modelBuilder.Entity("service.src.models.User", b =>
+                {
+                    b.Navigation("Playlists");
                 });
 #pragma warning restore 612, 618
         }
