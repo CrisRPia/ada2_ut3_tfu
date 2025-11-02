@@ -25,6 +25,9 @@ builder.Services.AddDbContext<ApplicationDbContext>(options =>
 builder.Services.AddSingleton<SongCacheService>();
 builder.Services.AddHostedService<DatabaseSyncService>();
 
+builder.Services.AddHealthChecks()
+    .AddNpgSql(builder.Configuration.GetConnectionString("DefaultConnection")!);
+
 builder.Services.AddAuthorization();
 builder
     .Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)

@@ -10,7 +10,14 @@
 
 #### Disponibilidad
 
-- [ ] Health endpoint monitoring - Cambiar /ping por health checks nativos de asp.net
+- [x] Health endpoint monitoring - Cambiar /ping por health checks nativos de asp.net
+
+Para ver los health checks fallando, puede ejecutar
+
+```bash
+docker compose stop db
+```
+
 - [ ] Rate limiting - Rate limiting por servicio como en la tfu 2
 
 #### Rendimiento
