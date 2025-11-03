@@ -1,0 +1,481 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>TFU 4: Evolución de Arquitectura</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      body {
+        font-family: "Inter", sans-serif;
+        background-color: #f3f4f6;
+        color: #111827;
+      }
+      .chart-container {
+        position: relative;
+        width: 100%;
+        margin-left: auto;
+        margin-right: auto;
+      }
+      .chart-container-sm {
+        max-width: 300px;
+        height: 300px;
+        max-height: 300px;
+      }
+      .chart-container-lg {
+        max-width: 600px;
+        height: 400px;
+        max-height: 400px;
+      }
+      .diagram-arrow {
+        font-size: 2rem;
+        line-height: 1;
+        color: #007ea7;
+      }
+      .diagram-box {
+        border: 2px solid #007ea7;
+        background-color: #fff;
+        padding: 1rem;
+        border-radius: 0.5rem;
+        text-align: center;
+        box-shadow:
+          0 4px 6px -1px rgba(0, 0, 0, 0.1),
+          0 2px 4px -1px rgba(0, 0, 0, 0.06);
+      }
+      .diagram-box-sm {
+        padding: 0.5rem;
+        font-size: 0.875rem;
+      }
+    </style>
+  </head>
+  <body class="antialiased">
+    <div class="container mx-auto p-4 md:p-8">
+      <header class="text-center mb-12">
+        <h1 class="text-4xl md:text-5xl font-bold text-[#003459] mb-4">
+          TFU 4: Evolución de una Arquitectura
+        </h1>
+        <p class="text-xl text-gray-700 max-w-3xl mx-auto">
+          Un resumen visual de la implementación de patrones de arquitectura
+          sobre una base de microservicios existente.
+        </p>
+      </header>
+
+      <main class="space-y-12">
+        <section id="intro" class="bg-white rounded-lg shadow-md p-6 md:p-8">
+          <h2 class="text-3xl font-bold text-[#003459] mb-4 text-center">
+            De TFU 3 a TFU 4
+          </h2>
+          <p class="text-lg text-gray-600 mb-6 text-center max-w-2xl mx-auto">
+            El objetivo era tomar un proyecto de microservicios funcional (TFU
+            3) y aplicar formalmente 6 patrones de arquitectura de la Unidad
+            Temática 4 para mejorar su robustez, rendimiento y seguridad.
+          </p>
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-6 text-center">
+            <div class="bg-gray-50 rounded-lg p-6">
+              <div class="text-6xl font-bold text-[#00A8E8]">3</div>
+              <div class="text-xl font-semibold text-gray-700 mt-2">
+                Microservicios Base
+              </div>
+              <p class="text-gray-500">(Auth, Songs, Playlists)</p>
+            </div>
+            <div class="bg-gray-50 rounded-lg p-6">
+              <div class="text-6xl font-bold text-[#00A8E8]">6</div>
+              <div class="text-xl font-semibold text-gray-700 mt-2">
+                Patrones Implementados
+              </div>
+              <p class="text-gray-500">(3 existentes + 3 nuevos)</p>
+            </div>
+          </div>
+        </section>
+
+        <section id="starting-point">
+          <h2 class="text-3xl font-bold text-[#003459] mb-6 text-center">
+            El Punto de Partida: Patrones Ocultos en TFU 3
+          </h2>
+          <p class="text-lg text-gray-600 mb-8 text-center max-w-3xl mx-auto">
+            Un análisis del proyecto de TFU 3 reveló que ya se estaban
+            utilizando 3 patrones de alto nivel, incluso antes de nombrarlos
+            formalmente. Esto demostró una base de diseño sólida.
+          </p>
+
+          <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            <div class="lg:col-span-3 bg-white rounded-lg shadow-md p-6">
+              <h3
+                class="text-2xl font-semibold text-[#003459] mb-4 text-center"
+              >
+                Arquitectura Base (TFU 3)
+              </h3>
+              <p class="text-gray-600 mb-6 text-center">
+                La arquitectura inicial ya separaba las responsabilidades en 3
+                microservicios, un proxy Nginx y una base de datos PostgreSQL
+                compartida, sentando las bases para la escalabilidad.
+              </p>
+              <div class="flex flex-col items-center space-y-4">
+                <div class="diagram-box">Usuario Final</div>
+                <div class="diagram-arrow">↓</div>
+                <div class="diagram-box">Proxy Nginx (Gateway)</div>
+                <div class="diagram-arrow">↓</div>
+                <div class="flex flex-wrap justify-center gap-4">
+                  <div class="diagram-box">Servicio Auth</div>
+                  <div class="diagram-box">Servicio Songs</div>
+                  <div class="diagram-box">Servicio Playlists</div>
+                </div>
+                <div class="diagram-arrow">↓</div>
+                <div class="diagram-box">Base de Datos (PostgreSQL)</div>
+              </div>
+            </div>
+
+            <div
+              class="bg-white rounded-lg shadow-md p-6 flex flex-col items-center"
+            >
+              <h3 class="text-2xl font-semibold text-[#003459] mb-4">
+                1. Cache-Aside
+              </h3>
+              <div class="chart-container chart-container-sm">
+                <canvas id="cacheChart"></canvas>
+              </div>
+              <p class="text-gray-600 mt-4 text-center">
+                El `SongCacheService` ya implementaba este patrón: primero
+                consultaba el caché en memoria y solo si fallaba, consultaba la
+                base de datos.
+              </p>
+            </div>
+
+            <div
+              class="bg-white rounded-lg shadow-md p-6 flex flex-col items-center"
+            >
+              <h3 class="text-2xl font-semibold text-[#003459] mb-4">
+                2. CQRS
+              </h3>
+              <div class="chart-container chart-container-sm">
+                <canvas id="cqrsChart"></canvas>
+              </div>
+              <p class="text-gray-600 mt-4 text-center">
+                El `SongCacheService` separaba lecturas (del caché rápido) y
+                escrituras (a un log de "diffs"), que eran sincronizadas a la BD
+                por un `DatabaseSyncService`.
+              </p>
+            </div>
+
+            <div
+              class="bg-white rounded-lg shadow-md p-6 flex flex-col items-center"
+            >
+              <h3 class="text-2xl font-semibold text-[#003459] mb-4">
+                3. Federated Identity
+              </h3>
+              <div class="chart-container chart-container-sm">
+                <canvas id="identityChart"></canvas>
+              </div>
+              <p class="text-gray-600 mt-4 text-center">
+                El `auth-service` actuaba como un proveedor de identidad (IdP)
+                central, emitiendo JWTs que los otros servicios (`songs`,
+                `playlists`) confiaban y validaban.
+              </p>
+            </div>
+          </div>
+        </section>
+
+        <section id="new-patterns">
+          <h2 class="text-3xl font-bold text-[#003459] mb-6 text-center">
+            Nuevas Implementaciones (TFU 4)
+          </h2>
+          <p class="text-lg text-gray-600 mb-8 text-center max-w-3xl mx-auto">
+            Para cumplir con los requisitos de la TFU 4, implementamos 3 nuevos
+            patrones enfocados en la disponibilidad y la seguridad, aprovechando
+            la infraestructura existente.
+          </p>
+
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div class="bg-white rounded-lg shadow-md p-6">
+              <h3 class="text-xl font-semibold text-[#007EA7] mb-2">
+                Disponibilidad
+              </h3>
+              <h4 class="text-2xl font-bold text-[#003459] mb-4">
+                Health Endpoint Monitoring
+              </h4>
+              <p class="text-gray-600 mb-6">
+                Reemplazamos los antiguos endpoints `/ping` por un `/health`
+                robusto. Este nuevo endpoint, implementado con un
+                `HealthController`, utiliza el `HealthCheckService` nativo de
+                .NET para verificar no solo que el servicio esté vivo, sino
+                también sus dependencias críticas, como la conexión a la base de
+                datos.
+              </p>
+              <div class="text-center bg-blue-50 p-4 rounded-lg">
+                <div class="text-5xl font-bold text-[#00A8E8]">503</div>
+                <div class="text-lg font-semibold text-gray-700 mt-2">
+                  Service Unavailable
+                </div>
+                <p class="text-gray-600">
+                  Respuesta automática si la BD se detiene (`docker compose stop
+                  db`).
+                </p>
+              </div>
+            </div>
+
+            <div class="bg-white rounded-lg shadow-md p-6">
+              <h3 class="text-xl font-semibold text-[#007EA7] mb-2">
+                Disponibilidad
+              </h3>
+              <h4 class="text-2xl font-bold text-[#003459] mb-4">
+                Rate Limiting
+              </h4>
+              <p class="text-gray-600 mb-6">
+                Se implementó un límite de peticiones centralizado directamente
+                en el proxy Nginx. Esto es crucial porque protege a *todas* las
+                réplicas de los servicios (ej. `songs-service=3`) de forma
+                unificada, en lugar de que cada instancia tenga su propio
+                contador.
+              </p>
+              <div class="text-center bg-blue-50 p-4 rounded-lg">
+                <div class="text-5xl font-bold text-[#00A8E8]">10</div>
+                <div class="text-lg font-semibold text-gray-700 mt-2">
+                  Peticiones / 10 seg
+                </div>
+                <p class="text-gray-600">
+                  Límite por IP con ráfaga (`rate=1r/s`, `burst=10`).
+                </p>
+              </div>
+            </div>
+
+            <div class="md:col-span-2 bg-white rounded-lg shadow-md p-6">
+              <h3 class="text-xl font-semibold text-[#007EA7] mb-2 text-center">
+                Seguridad
+              </h3>
+              <h4 class="text-2xl font-bold text-[#003459] mb-6 text-center">
+                Gateway Offloading (SSL)
+              </h4>
+              <p class="text-gray-600 mb-8 text-center max-w-2xl mx-auto">
+                Implementamos la descarga de SSL en el gateway Nginx. El proxy
+                ahora maneja todo el cifrado HTTPS (escuchando en el puerto
+                `8443`), comunicándose con los servicios internos a través de
+                HTTP simple. Esto centraliza la gestión de certificados y
+                simplifica los servicios.
+              </p>
+
+              <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div class="p-4 rounded-lg border-2 border-red-300 bg-red-50">
+                  <h5
+                    class="text-lg font-semibold text-red-700 text-center mb-4"
+                  >
+                    Antes (Solo HTTP)
+                  </h5>
+                  <div class="flex flex-col items-center space-y-2">
+                    <div class="diagram-box diagram-box-sm">Usuario</div>
+                    <div class="font-mono text-red-600">http://:8080</div>
+                    <div class="diagram-arrow">↓</div>
+                    <div class="diagram-box diagram-box-sm">
+                      Nginx (Puerto 80)
+                    </div>
+                    <div class="font-mono text-red-600">http://</div>
+                    <div class="diagram-arrow">↓</div>
+                    <div class="diagram-box diagram-box-sm">Microservicio</div>
+                  </div>
+                </div>
+                <div
+                  class="p-4 rounded-lg border-2 border-green-300 bg-green-50"
+                >
+                  <h5
+                    class="text-lg font-semibold text-green-700 text-center mb-4"
+                  >
+                    Después (HTTPS Offload)
+                  </h5>
+                  <div class="flex flex-col items-center space-y-2">
+                    <div class="diagram-box diagram-box-sm">Usuario</div>
+                    <div class="font-mono text-green-600">https://:8443</div>
+                    <div class="diagram-arrow">↓</div>
+                    <div class="diagram-box diagram-box-sm">
+                      Nginx (Puerto 443)
+                    </div>
+                    <div class="font-mono text-red-600">http://</div>
+                    <div class="diagram-arrow">↓</div>
+                    <div class="diagram-box diagram-box-sm">Microservicio</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section id="summary">
+          <h2 class="text-3xl font-bold text-[#003459] mb-6 text-center">
+            Resumen de Patrones Implementados
+          </h2>
+          <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <div class="bg-white rounded-lg shadow-md p-6">
+              <h3 class="text-xl font-semibold text-[#003459] mb-2">
+                Cache-Aside
+              </h3>
+              <span
+                class="text-sm font-medium bg-blue-100 text-[#007EA7] py-0.5 px-2 rounded"
+                >Rendimiento</span
+              >
+              <p class="text-gray-600 mt-3">
+                Reduce la latencia de lectura consultando un caché en memoria
+                antes de recurrir a la base de datos.
+              </p>
+            </div>
+
+            <div class="bg-white rounded-lg shadow-md p-6">
+              <h3 class="text-xl font-semibold text-[#003459] mb-2">CQRS</h3>
+              <span
+                class="text-sm font-medium bg-blue-100 text-[#007EA7] py-0.5 px-2 rounded"
+                >Rendimiento</span
+              >
+              <p class="text-gray-600 mt-3">
+                Separa los modelos de lectura (optimizados para caché) de los
+                modelos de escritura (optimizados para ingesta).
+              </p>
+            </div>
+
+            <div class="bg-white rounded-lg shadow-md p-6">
+              <h3 class="text-xl font-semibold text-[#003459] mb-2">
+                Federated Identity
+              </h3>
+              <span
+                class="text-sm font-medium bg-green-100 text-green-800 py-0.5 px-2 rounded"
+                >Seguridad</span
+              >
+              <p class="text-gray-600 mt-3">
+                Centraliza la autenticación en un servicio (Auth) que emite
+                tokens (JWT) en los que confían los demás servicios.
+              </p>
+            </div>
+
+            <div class="bg-white rounded-lg shadow-md p-6">
+              <h3 class="text-xl font-semibold text-[#003459] mb-2">
+                Health Endpoint Monitoring
+              </h3>
+              <span
+                class="text-sm font-medium bg-orange-100 text-orange-800 py-0.5 px-2 rounded"
+                >Disponibilidad</span
+              >
+              <p class="text-gray-600 mt-3">
+                Expone un endpoint `/health` que verifica el estado del servicio
+                y sus dependencias (BD) para monitoreo.
+              </p>
+            </div>
+
+            <div class="bg-white rounded-lg shadow-md p-6">
+              <h3 class="text-xl font-semibold text-[#003459] mb-2">
+                Rate Limiting
+              </h3>
+              <span
+                class="text-sm font-medium bg-orange-100 text-orange-800 py-0.5 px-2 rounded"
+                >Disponibilidad</span
+              >
+              <p class="text-gray-600 mt-3">
+                Protege los servicios de la sobrecarga aplicando un límite de
+                peticiones centralizado en el proxy Nginx.
+              </p>
+            </div>
+
+            <div class="bg-white rounded-lg shadow-md p-6">
+              <h3 class="text-xl font-semibold text-[#003459] mb-2">
+                Gateway Offloading
+              </h3>
+              <span
+                class="text-sm font-medium bg-green-100 text-green-800 py-0.5 px-2 rounded"
+                >Seguridad</span
+              >
+              <p class="text-gray-600 mt-3">
+                Libera a los servicios de la carga de gestionar SSL/TLS,
+                centralizando el cifrado HTTPS en el gateway Nginx.
+              </p>
+            </div>
+          </div>
+        </section>
+      </main>
+    </div>
+
+    <script>
+      const tooltipTitleCallback = {
+        plugins: {
+          tooltip: {
+            callbacks: {
+              title: function (tooltipItems) {
+                const item = tooltipItems[0];
+                let label = item.chart.data.labels[item.dataIndex];
+                if (Array.isArray(label)) {
+                  return label.join(" ");
+                } else {
+                  return label;
+                }
+              },
+            },
+          },
+        },
+      };
+
+      const donutChartOptions = {
+        responsive: true,
+        maintainAspectRatio: false,
+        cutout: "70%",
+        ...tooltipTitleCallback,
+        plugins: {
+          ...tooltipTitleCallback.plugins,
+          legend: {
+            display: false,
+          },
+        },
+      };
+
+      const colors = {
+        lightBlue: "#00A8E8",
+        mediumBlue: "#007EA7",
+        darkBlue: "#003459",
+        gray: "#e5e7eb",
+      };
+
+      new Chart(document.getElementById("cacheChart"), {
+        type: "doughnut",
+        data: {
+          labels: ["Completado"],
+          datasets: [
+            {
+              data: [100],
+              backgroundColor: [colors.lightBlue],
+              borderWidth: 0,
+            },
+          ],
+        },
+        options: donutChartOptions,
+      });
+
+      new Chart(document.getElementById("cqrsChart"), {
+        type: "doughnut",
+        data: {
+          labels: ["Completado"],
+          datasets: [
+            {
+              data: [100],
+              backgroundColor: [colors.lightBlue],
+              borderWidth: 0,
+            },
+          ],
+        },
+        options: donutChartOptions,
+      });
+
+      new Chart(document.getElementById("identityChart"), {
+        type: "doughnut",
+        data: {
+          labels: ["Completado"],
+          datasets: [
+            {
+              data: [100],
+              backgroundColor: [colors.lightBlue],
+              borderWidth: 0,
+            },
+          ],
+        },
+        options: donutChartOptions,
+      });
+    </script>
+  </body>
+</html>

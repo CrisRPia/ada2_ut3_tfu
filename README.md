@@ -4,6 +4,12 @@
 > docker compose down -v && docker compose up --build --scale songs-service=3
 ```
 
+# Swagger
+
+- [Servicio de canciones](https://localhost:8443/api/songs/swagger/index.html)
+- [Servicio de auth](https://localhost:8443/api/auth/swagger/index.html)
+- [Servicio de playlists](https://localhost:8443/api/playlists/swagger/index.html)
+
 # TFU 4
 
 ### Patrones a implementar:
