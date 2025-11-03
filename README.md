@@ -30,9 +30,19 @@ encima de la ráfaga es rechazada.
 
 - [x] Cache-aside - Ya implementado para la tfu 3 en [SongCacheService](./services/songs/src/services/SongCacheService.cs).
 - [x] CQRS - Ya implementado para la TFU 3. El SongCacheService separa las
-    lecturas (de un caché en memoria) de las escrituras (a diffs que se sincronizan eventualmente).
+      lecturas (de un caché en memoria) de las escrituras (a diffs que se sincronizan eventualmente).
 
 #### Seguridad
 
-- [ ] Gateway offloading - El proxy se encarga de manejar HTTPs, los servicios internos manejan HTTP.
+- [x] Gateway offloading - El proxy se encarga de manejar HTTPs, los servicios internos manejan HTTP.
+
+Se ha configurado el proxy Nginx para que actúe como punto de terminación SSL/TLS.
+Maneja todo el cifrado HTTPS (en https://localhost:8443) y se comunica con los
+servicios internos (auth, songs, playlists) usando HTTP simple.
+
+También redirige automáticamente todo el tráfico HTTP (en http://localhost:8080)
+a HTTPS.
+
+[Ver Configuración](./proxy/nginx.conf)
+
 - [x] Federated identity - Ya implementado para tfu 3. Auth service crea jwt, los otros servicios confían en él.
