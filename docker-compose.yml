@@ -9,39 +9,11 @@ services:
       - ./proxy/proxy.crt:/etc/nginx/proxy.crt:ro
       - ./proxy/proxy.key:/etc/nginx/proxy.key:ro
     depends_on:
-      - auth-service
-      - songs-service
-      - playlists-service
+      - music-api
 
-  auth-service:
+  music-api:
     build:
-      context: ./services/auth
-    depends_on:
-      db:
-        condition: service_healthy
-    environment:
-      - DB_HOST=db
-      - DB_PORT=5432
-      - DB_NAME=music_player_db
-      - DB_USER=user
-      - DB_PASSWORD=password
-
-  songs-service:
-    build:
-      context: ./services/songs
-    depends_on:
-      db:
-        condition: service_healthy
-    environment:
-      - DB_HOST=db
-      - DB_PORT=5432
-      - DB_NAME=music_player_db
-      - DB_USER=user
-      - DB_PASSWORD=password
-
-  playlists-service:
-    build:
-      context: ./services/playlists
+      context: ./music_api
     depends_on:
       db:
         condition: service_healthy
